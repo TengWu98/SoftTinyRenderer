@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <functional>
 #include <filesystem>
+#include <algorithm>
 
 #include <string>
 #include <sstream>
@@ -15,10 +16,6 @@
 #include <list>
 #include <unordered_map>
 #include <unordered_set>
-
-#ifdef RENDERER_PLATFORM_WINDOWS
-#include <Windows.h>
-#endif
 
 // glm相关
 #define GLM_ENABLE_EXPERIMENTAL
@@ -30,8 +27,11 @@
 // 全局宏定义
 #include "Renderer/Core/Macro.h"
 
-// 日志类
-#include "Renderer/Logger/Logger.h"
+// 数学
+#include "Renderer/Math/Math.h"
 
-// 计时器类
-#include "Renderer/Instrumentor/Timer/Timer.h"
+// 图像
+#include "Renderer/TGAImage/TGAImage.h"
+
+// 模型
+#include "Renderer/Model/Model.h"

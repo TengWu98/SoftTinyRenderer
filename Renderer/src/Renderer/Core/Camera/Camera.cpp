@@ -1,145 +1,119 @@
 #include "pch.h"
 #include "Camera.h"
 
+#include "Platform/Windows/Win32.h"
+
 RENDERER_NAMESPACE_BEGIN
-// 构造函数
-Camera::Camera(float fAspectRatio, float fNear, float fFar, ProjectionType eProjectionType) :
-	m_mat4ProjectionMatrix(glm::mat4(1.f)),
-	m_mat4ViewMatrix(glm::mat4(1.f)),
-	m_vec3Position(glm::vec3(0.f)),
-	m_vec3Scale(glm::vec3(1.f)),
-	m_quatRotation(glm::quat(0.f, 0.f, 0.f, 0.f)),
-	m_fAspectRatio(fAspectRatio),
-	m_fNearClip(fNear),
-	m_fFarClip(fFar),
-	m_eProjectionType(eProjectionType),
-	m_uiWidth(0),
-	m_uiHeight(0)
+
+Camera::Camera(vec3 e, vec3 t, vec3 up, float aspect) :
+	eye(e), target(t), up(up), aspect(aspect)
+{}
+
+Camera::~Camera()
+{}
+
+void updata_camera_pos(Camera& camera)
 {
+	vec3 from_target = camera.eye - camera.target;			// vector point from target to camera's position
+	float radius = from_target.norm();
+
+	float phi = (float)atan2(from_target[0], from_target[2]); // azimuth angle(方位角), angle between from_target and z-axis，[-pi, pi]
+	float theta = (float)acos(from_target[1] / radius);		  // zenith angle(天顶角), angle between from_target and y-axis, [0, pi]
+	float x_delta = window->mouse_info.orbit_delta[0] / window->width;
+	float y_delta = window->mouse_info.orbit_delta[1] / window->height;
+
+	// for mouse wheel
+	radius *= (float)pow(0.95, window->mouse_info.wheel_delta);
+
+	float factor = 1.5 * PI;
+	// for mouse left button
+	phi += x_delta * factor;
+	theta += y_delta * factor;
+	if (theta > PI) theta = PI - EPSILON * 100;
+	if (theta < 0)  theta = EPSILON * 100;
+
+	camera.eye[0] = camera.target[0] + radius * sin(phi) * sin(theta);
+	camera.eye[1] = camera.target[1] + radius * cos(theta);
+	camera.eye[2] = camera.target[2] + radius * sin(theta) * cos(phi);
+
+	// for mouse right button
+	factor = radius * (float)tan(60.0 / 360 * PI) * 2.2;
+	x_delta = window->mouse_info.fv_delta[0] / window->width;
+	y_delta = window->mouse_info.fv_delta[1] / window->height;
+	vec3 left = x_delta * factor * camera.x;
+	vec3 up = y_delta * factor * camera.y;
+
+	camera.eye += (left - up);
+	camera.target += (left - up);
 }
 
-// 设置相机位置
-void Camera::SetPosition(const glm::vec3& vec3Position)
+void handle_mouse_events(Camera& camera)
 {
-	m_vec3Position = vec3Position;
-	RecalculateViewMatrix();
-}
-
-// 获取相机位置
-const glm::vec3& Camera::GetPosition() const
-{
-	return m_vec3Position;
-}
-
-// 设置投影矩阵
-void Camera::SetProjectionMatrix(const glm::mat4& mat4ProjectionMatrix)
-{
-	m_mat4ProjectionMatrix = mat4ProjectionMatrix;
-	RecalculateViewProjectionMatrix();
-}
-
-// 获取投影矩阵
-const glm::mat4& Camera::GetProjectionMatrix() const
-{
-	return m_mat4ProjectionMatrix;
-}
-
-// 
-void Camera::SetViewMatrix(const glm::mat4& mat4ViewMatrix)
-{
-	m_mat4ViewMatrix = glm::inverse(mat4ViewMatrix);
-	RecalculateViewProjectionMatrix();
-}
-
-const glm::mat4& Camera::GetViewMatrix() const
-{
-	return m_mat4ViewMatrix;
-}
-
-const glm::mat4& Camera::GetViewProjectionMatrix() const
-{
-	return m_mat4ViewProjectionMatrix;
-}
-
-const ProjectionType Camera::GetProjectionType() const
-{
-	return m_eProjectionType;
-}
-
-void Camera::SetProjectionType(const ProjectionType& eProjectionType)
-{
-	m_eProjectionType = eProjectionType;
-}
-
-void Camera::SetNearAndFarClip(float fNear, float fFar)
-{
-	m_fNearClip = fNear;
-	m_fFarClip = fFar;
-	RecalculateProjectionMatrix();
-}
-
-void Camera::SetNearClip(float fNear)
-{
-	m_fNearClip = fNear;
-	RecalculateProjectionMatrix();
-}
-
-const float Camera::GetNearClip() const
-{
-	return m_fNearClip;
-}
-
-void Camera::SetFarClip(float fFar)
-{
-	m_fFarClip = fFar;
-	RecalculateProjectionMatrix();
-}
-
-const float Camera::GetFarClip() const
-{
-	return m_fFarClip;
-}
-
-void Camera::SetViewPortSize(unsigned int uiWidth, unsigned int uiHeight)
-{
-	if (m_uiWidth != uiWidth || m_uiHeight != uiHeight)
+	if (window->buttons[0])
 	{
-		m_uiWidth = uiWidth;
-		m_uiHeight = uiHeight;
-		m_fAspectRatio = static_cast<float>(m_uiWidth) / static_cast<float>(m_uiHeight);
-		RecalculateProjectionMatrix();
+		vec2 cur_pos = get_mouse_pos();
+		window->mouse_info.orbit_delta = window->mouse_info.orbit_pos - cur_pos;
+		window->mouse_info.orbit_pos = cur_pos;
+	}
+
+	if (window->buttons[1])
+	{
+		vec2 cur_pos = get_mouse_pos();
+		window->mouse_info.fv_delta = window->mouse_info.fv_pos - cur_pos;
+		window->mouse_info.fv_pos = cur_pos;
+	}
+
+	updata_camera_pos(camera);
+}
+
+void handle_key_events(Camera& camera)
+{
+	float distance = (camera.target - camera.eye).norm();
+
+	if (window->keys['W'])
+	{
+		camera.eye += -10.0 / window->width * camera.z * distance;
+	}
+	if (window->keys['S'])
+	{
+		camera.eye += 0.05f * camera.z;
+	}
+	if (window->keys[VK_UP] || window->keys['Q'])
+	{
+		camera.eye += 0.05f * camera.y;
+		camera.target += 0.05f * camera.y;
+	}
+	if (window->keys[VK_DOWN] || window->keys['E'])
+	{
+		camera.eye += -0.05f * camera.y;
+		camera.target += -0.05f * camera.y;
+	}
+	if (window->keys[VK_LEFT] || window->keys['A'])
+	{
+		camera.eye += -0.05f * camera.x;
+		camera.target += -0.05f * camera.x;
+	}
+	if (window->keys[VK_RIGHT] || window->keys['D'])
+	{
+		camera.eye += 0.05f * camera.x;
+		camera.target += 0.05f * camera.x;
+	}
+	if (window->keys[VK_ESCAPE])
+	{
+		window->is_close = 1;
 	}
 }
 
-void Camera::SetAspectRatio(float fAspectRatio)
+void handle_events(Camera& camera)
 {
-	m_fAspectRatio = fAspectRatio;
-	RecalculateProjectionMatrix();
-}
+	//calculate camera axis
+	camera.z = unit_vector(camera.eye - camera.target);
+	camera.x = unit_vector(cross(camera.up, camera.z));
+	camera.y = unit_vector(cross(camera.z, camera.x));
 
-const float Camera::GetAspectRatio() const
-{
-	return m_fAspectRatio;
-}
-
-// 重新计算
-void Camera::RecalculateViewMatrix()
-{
-	glm::mat4 mat4Translation = glm::translate(glm::mat4(1.f), m_vec3Position);
-
-	glm::mat4 mat4Rotation = glm::toMat4(m_quatRotation);
-
-	glm::mat4 mat4Scale = glm::scale(glm::mat4(1.f), m_vec3Scale);
-
-	m_mat4ViewMatrix = glm::inverse(mat4Translation * mat4Rotation * mat4Scale);
-
-	RecalculateViewProjectionMatrix();
-}
-
-// 重新计算ViewProjection矩阵
-void Camera::RecalculateViewProjectionMatrix()
-{
-	m_mat4ViewProjectionMatrix = m_mat4ProjectionMatrix * m_mat4ViewMatrix;
+	//mouse and keyboard events
+	handle_mouse_events(camera);
+	handle_key_events(camera);
 }
 
 RENDERER_NAMESPACE_END

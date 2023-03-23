@@ -2,165 +2,161 @@
 
 RENDERER_NAMESPACE_BEGIN
 
-/****************** 二维向量类 *********************/
-template <class t>
-class Vec2 {
+#define PI 3.1415926
+#define MAX_MODEL_NUM 10
+#define MAX_VERTEX 10
+#define EPSILON 1e-5f
+#define EPSILON2 1e-5f
+
+class vec2 {
 public:
-	t x, y;
-	Vec2<t>() :x(t()), y(t()) {}
-	Vec2<t>(t _x, t _y) : x(_x), y(_y) {}
-	Vec2<t>(const Vec2<t>& v) { *this = v; }
-	Vec2<t>& operator=(const Vec2<t>& v)
-	{
-		if (this != &v) {
-			this->x = v.x;
-			this->y = v.y;
-		}
-		return *this;
-	}
-	inline Vec2<t> operator +(const Vec2<t>& V) const { return Vec2<t>(x + V.x, y + V.y); }//向量加法
-	inline Vec2<t> operator -(const Vec2<t>& V) const { return Vec2<t>(x - V.x, y - V.y); }//向量减法
-	inline Vec2<t> operator *(float f)          const { return Vec2<t>(x * f, y * f); }//向量的数乘运算
+	vec2();
+	vec2(float e0, float e1);
 
-	inline t& operator[](const int idx) { if (idx <= 0) return x; else return y; }
+	float x() const;
+	float y() const;
+	float& operator[](int i);
+	float operator[](int i) const;
 
-	float norm() const { return std::sqrt(x * x + y * y); }//向量的模长
-	Vec2<t>& normalize(t l = 1) { *this = (*this) * (l / norm()); return *this; }//向量归一化
+	vec2 operator-() const;
+	vec2& operator+=(const vec2& v);
+	vec2& operator*=(const float t);
+	vec2& operator/=(const float t);
 
-	template <class > friend std::ostream& operator<<(std::ostream& s, Vec2<t>& v);//向量输出
+	float norm() const;
+	float norm_squared() const;
+
+public:
+	float e[2];
 };
 
-template <class t>
-std::ostream& operator<<(std::ostream& os, Vec2<t>& v) {
-	os << "(" << v.x << ", " << v.y << ")\n";
-	return os;
-}
+class vec3 {
+public:
+	vec3();
+	vec3(float e0, float e1, float e2);
 
-// 模板特化
-using vec2f = Vec2<float>;
-using vec2i = Vec2<int>;
+	float x() const;
+	float y() const;
+	float z() const;
+	float& operator[](int i);
+	float operator[](int i) const;
 
-/****************** 三维向量类 *********************/
-template <class t>
-struct Vec3 {
-	t x, y, z;
-	Vec3<t>() :x(t()), y(t()), z(t()) {}
-	Vec3<t>(t _x, t _y, t _z) : x(_x), y(_y), z(_z) {}
-	Vec3<t>(const Vec3<t>& v) { *this = v; }
-	Vec3<t>& operator=(const Vec3<t>& v)
-	{
-		if (this != &v) {
-			this->x = v.x;
-			this->y = v.y;
-			this->z = v.z;
-		}
-		return *this;
-	}
-	inline Vec3<t> operator +(const Vec3<t>& V) const { return Vec3<t>(x + V.x, y + V.y, z + V.z); }//向量加法
-	inline Vec3<t> operator -(const Vec3<t>& V) const { return Vec3<t>(x - V.x, y - V.y, z - V.z); }//向量减法
-	inline Vec3<t> operator *(float f)          const { return Vec3<t>(x * f, y * f, z * f); }//向量的数乘运算
-	inline Vec3<t> operator ^(const Vec3<t>& v) const { return Vec3<t>(y * v.z - z * v.y, z * v.x - x * v.z, x * v.y - y * v.x); }//向量叉乘运算（外积）
-	inline t       operator *(const Vec3<t>& v) const { return x * v.x + y * v.y + z * v.z; }//向量的点乘（内积）
+	vec3 operator-() const;
+	vec3& operator+=(const vec3& v);
+	vec3& operator*=(const float t);
+	vec3& operator/=(const float t);
 
-	float norm() const { return std::sqrt(x * x + y * y + z * z); }//向量的模长
-	Vec3<t>& normalize(t l = 1) { *this = (*this) * (l / norm()); return *this; }//向量归一化
+	float norm() const;
+	float norm_squared() const;
 
-	template <class > friend std::ostream& operator<<(std::ostream& s, Vec3<t>& v);//向量输出
-	inline t& operator[](const int idx) { if (idx <= 0) return x; else if (idx == 1) return y; else return z; }
+public:
+	float e[3];
 };
 
-template <class t>
-std::ostream& operator<<(std::ostream& os, Vec3<t>& v) {
-	os << "(" << v.x << ", " << v.y << ", " << v.z << ")\n";
-	return os;
-}
+class vec4 {
+public:
+	vec4();
+	vec4(float e0, float e1, float e2, float e3);
 
-// 模板特化
-using vec3f = Vec3<float>;
-using vec3i = Vec3<int>;
+	float x() const;
+	float y() const;
+	float z() const;
+	float w() const;
+	float& operator[](int i);
+	float operator[](int i) const;
 
-/****************** 四维向量类 *********************/
-template <class t>
-struct Vec4
-{
-	t x, y, z, w;
-	Vec4<t>() :x(t()), y(t()), z(t()), w(t()) {}
-	Vec4<t>(t _x, t _y, t _z, t _w) : x(_x), y(_y), z(_z), w(_w) {}
-	Vec4<t>(const Vec4<t>& v) { *this = v; }
-	Vec4<t>& operator=(const Vec4<t>& v)
-	{
-		if (this != &v) {
-			this->x = v.x;
-			this->y = v.y;
-			this->z = v.z;
-			this->w = v.w;
-		}
-		return *this;
-	}
-	inline Vec4<t> operator +(const Vec4<t>& V) const { return Vec4<t>(x + V.x, y + V.y, z + V.z, w + V.w); }//向量加法
-	inline Vec4<t> operator -(const Vec4<t>& V) const { return Vec4<t>(x - V.x, y - V.y, z - V.z, w - V.w); }//向量减法
-	inline Vec4<t> operator *(float f)          const { return Vec4<t>(x * f, y * f, z * f, w * f); }//向量的数乘运算
-	inline t       operator *(const Vec4<t>& v) const { return x * v.x + y * v.y + z * v.z + w * v.w; }//向量的点乘（内积）
+	vec4& operator*=(const float t);
+	vec4& operator/=(const float t);
 
-	float norm() const { return std::sqrt(x * x + y * y + z * z + w * w); }//向量的模长
-	Vec4<t>& normalize(t l = 1) { *this = (*this) * (l / norm()); return *this; }//向量归一化
-
-	template <class > friend std::ostream& operator<<(std::ostream& s, Vec4<t>& v);//向量输出
-	inline t& operator[](const int idx) { if (idx <= 0) return x; else if (idx == 1) return y; else if (idx == 2) return z; else return w; }
+public:
+	float e[4];
 };
 
-template <class t>
-std::ostream& operator<<(std::ostream& os, Vec4<t>& v) {
-	os << "(" << v.x << ", " << v.y << ", " << v.z << ", " << v.w << ")\n";
-	return os;
-}
-
-//模板特化
-using vec4f = Vec4<float>;
-using vec4i = Vec4<int>;
-
-/****************** 三阶方阵类 *********************/
-class Mat3f
-{
+class mat3 {
 public:
-	Mat3f();
+	mat3();
 
-	Mat3f transpose();
-	Mat3f inverse();
+	vec3& operator[](int i);
+	vec3 operator[](int i) const;
 
-	static Mat3f identity();
+	mat3 transpose() const;
+	mat3 inverse() const;
+	mat3 inverse_transpose() const;
+	static mat3 identity();
+
 public:
-	vec3f& operator[](const int i) { return rows[i]; }
-	vec3f operator[](const int i) const { return rows[i]; }
-
-	Mat3f operator*(Mat3f& a);
-	vec3f operator*(vec3f& a);
-
-	friend std::ostream& operator<<(std::ostream& s, Mat3f& m);
-public:
-	vec3f rows[3];
+	vec3 rows[3];
 };
 
-/****************** 四阶方阵类 *********************/
-class Mat4f
-{
+class mat4 {
 public:
-	Mat4f();
+	mat4();
 
-	Mat4f transpose();
-	Mat4f inverse();
+	vec4& operator[](int i);
+	vec4 operator[](int i) const;
 
-	static Mat4f identity();
+	mat4 transpose() const;
+	mat4 inverse() const;
+	mat4 inverse_transpose() const;
+	static mat4 identity();
+
 public:
-	vec4f& operator[](const int i) { return rows[i]; }
-	vec4f operator[](const int i) const { return rows[i]; }
-
-	Mat4f operator*(Mat4f& a);
-	vec4f operator*(vec4f& a);
-
-	friend std::ostream& operator<<(std::ostream& s, Mat4f& m);
-public:
-	vec4f rows[4];
+	vec4 rows[4];
 };
+
+/* vec2 related functions */
+std::ostream& operator<<(std::ostream& out, const vec2& v);
+vec2 operator+(const vec2& u, const vec2& v);
+vec2 operator-(const vec2& u, const vec2& v);
+vec2 operator*(const vec2& u, const vec2& v);
+vec2 operator*(double t, const vec2& v);
+vec2 operator*(const vec2& v, double t);
+vec2 operator/(vec2 v, double t);
+
+/* vec3 related functions */
+std::ostream& operator<<(std::ostream& out, const vec3& v);
+vec3 operator+(const vec3& u, const vec3& v);
+vec3 operator-(const vec3& u, const vec3& v);
+vec3 operator*(const vec3& u, const vec3& v);
+vec3 operator*(double t, const vec3& v);
+vec3 operator*(const vec3& v, double t);
+vec3 operator/(vec3 v, double t);
+double dot(const vec3& u, const vec3& v);
+vec3 cross(const vec3& u, const vec3& v);
+vec3 unit_vector(const vec3& v);
+vec3 cwise_product(const vec3& a, const vec3& b);
+
+/* vec4 related functions */
+std::ostream& operator<<(std::ostream& out, const vec4& v);
+vec4 to_vec4(const vec3& u, float w);
+vec4 operator-(const vec4& u, const vec4& v);
+vec4 operator+(const vec4& u, const vec4& v);
+vec4 operator*(double t, const vec4& v);
+vec4 operator*(const vec4& v, double t);
+
+/* mat related functions */
+std::ostream& operator<<(std::ostream& out, const mat3& m);
+std::ostream& operator<<(std::ostream& out, const mat4& m);
+vec4 operator*(const mat4& m, const vec4 v);
+mat4 operator*(const mat4& m1, const mat4& m2);
+
+/* transformation related functions */
+mat4 mat4_translate(float tx, float ty, float tz);
+mat4 mat4_scale(float sx, float sy, float sz);
+mat4 mat4_rotate_x(float angle);
+mat4 mat4_rotate_y(float angle);
+mat4 mat4_rotate_z(float angle);
+mat4 mat4_lookat(vec3 eye, vec3 target, vec3 up);
+mat4 mat4_ortho(float left, float right, float bottom, float top, float near, float far);
+mat4 mat4_perspective(float fovy, float aspect, float near, float far);
+
+/* untility functions */
+float float_max(float a, float b);
+float float_min(float a, float b);
+float float_clamp(float f, float min, float max);
+float float_lerp(float start, float end, float alpha);
+vec2 vec2_lerp(vec2& start, vec2& end, float alpha);
+vec3 vec3_lerp(vec3& start, vec3& end, float alpha);
+vec4 vec4_lerp(vec4& start, vec4& end, float alpha);
 
 RENDERER_NAMESPACE_END

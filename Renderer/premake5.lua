@@ -2,7 +2,7 @@
 project "Renderer"
 
     -- 项目类型：静态链接库
-	kind "StaticLib"
+	kind "ConsoleApp"
 
     -- 语言：C++
 	language "C++"
@@ -49,17 +49,10 @@ project "Renderer"
 
     	-- 日志
     	"vendor/spdlog/include",
-        -- GLFW
-    	"%{IncludeDir.GLFW}",
         -- stb_image
         "%{IncludeDir.stb_image}",
 		-- glm数学库
 		"%{IncludeDir.glm}",
-	}
-
-  links
-	{
-		"GLFW",
 	}
   
 	-- 
@@ -68,7 +61,6 @@ project "Renderer"
 	-- 当前系统是windows时
 	filter "system:windows"
 		systemversion "latest"
-
         -- 
 		defines
 		{
