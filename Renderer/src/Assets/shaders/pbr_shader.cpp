@@ -195,34 +195,25 @@ vec3 PBRShader::direct_fragment_shader(float alpha, float beta, float gamma)
 		vec3 ambient = 0.05 * albedo;
 		color = Lo + ambient;
 		Reinhard_mapping(color);
-
-		//vec3 temp2 = (color + vec3(1.0, 1.0, 1.0));
-		//for (int i = 0; i < 3; i++)
-		//{
-		   // color[i] = color[i] / temp2[i];
-		   // color[i] = pow(color[i], 1.0 / 2.2);
-		//}
-
 	}
-
 
 	return color * 255.f;
 }
 
-//ibl_fragment_shader
+// ibl_fragment_shader
 vec3 PBRShader::fragment_shader(float alpha, float beta, float gamma)
 {
 	vec3 CookTorrance_brdf;
 	vec3 light_pos = vec3(2, 1.5, 5);
 	vec3 radiance = vec3(3, 3, 3);
 
-	//for reading easily
+	// for reading easily
 	vec4* clip_coords = payload.clipcoord_attri;
 	vec3* world_coords = payload.worldcoord_attri;
 	vec3* normals = payload.normal_attri;
 	vec2* uvs = payload.uv_attri;
 
-	//interpolate attribute
+	// interpolate attribute
 	float Z = 1.0 / (alpha / clip_coords[0].w() + beta / clip_coords[1].w() + gamma / clip_coords[2].w());
 	vec3 normal = (alpha * normals[0] / clip_coords[0].w() + beta * normals[1] / clip_coords[1].w() +
 		gamma * normals[2] / clip_coords[2].w()) * Z;
